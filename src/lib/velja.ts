@@ -63,11 +63,43 @@ export function formatBrowserIdentifier(identifier?: string): string {
 }
 
 function readVeljaDefaultsPayload(): VeljaDefaultsPayload {
-  const json = execSync(`defaults export ${VELJA_BUNDLE_ID} - | plutil -convert json -o - -`, {
-    encoding: "utf8",
-  });
+  function readStringKey(key: "defaultBrowser" | "alternativeBrowser"): string | undefined {
+    try {
+      const value = execSync(`defaults export ${VELJA_BUNDLE_ID} - | plutil -extract ${key} raw -o - -`, {
+        encoding: "utf8",
+        maxBuffer: 1024 * 1024 * 8,
+      }).trim();
 
-  return JSON.parse(json) as VeljaDefaultsPayload;
+      return value.length > 0 ? value : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  function readStringArrayKey(key: "preferredBrowsers" | "rules"): string[] {
+    try {
+      const rawJson = execSync(`defaults export ${VELJA_BUNDLE_ID} - | plutil -extract ${key} json -o - -`, {
+        encoding: "utf8",
+        maxBuffer: 1024 * 1024 * 8,
+      });
+      const parsed = JSON.parse(rawJson) as unknown;
+
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+
+      return parsed.filter((item): item is string => typeof item === "string");
+    } catch {
+      return [];
+    }
+  }
+
+  return {
+    defaultBrowser: readStringKey("defaultBrowser"),
+    alternativeBrowser: readStringKey("alternativeBrowser"),
+    preferredBrowsers: readStringArrayKey("preferredBrowsers"),
+    rules: readStringArrayKey("rules"),
+  };
 }
 
 function parseRules(rawRules: string[] | undefined): VeljaRule[] {
