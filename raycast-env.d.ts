@@ -31,6 +31,14 @@ declare namespace Preferences {
   export type ViewRuleDetails = ExtensionPreferences & {}
   /** Preferences accessible in the `create-rule` command */
   export type CreateRule = ExtensionPreferences & {}
+  /** Preferences accessible in the `open-url-with-velja` command */
+  export type OpenUrlWithVelja = ExtensionPreferences & {}
+  /** Preferences accessible in the `open-url-in-browser` command */
+  export type OpenUrlInBrowser = ExtensionPreferences & {}
+  /** Preferences accessible in the `remove-tracking-parameters` command */
+  export type RemoveTrackingParameters = ExtensionPreferences & {}
+  /** Preferences accessible in the `open-url-from-clipboard` command */
+  export type OpenUrlFromClipboard = ExtensionPreferences & {}
 }
 
 declare namespace Arguments {
@@ -52,5 +60,13 @@ declare namespace Arguments {
   export type ViewRuleDetails = {}
   /** Arguments passed to the `create-rule` command */
   export type CreateRule = {}
+  /** Arguments passed to the `open-url-with-velja` command */
+  export type OpenUrlWithVelja = {}
+  /** Arguments passed to the `open-url-in-browser` command */
+  export type OpenUrlInBrowser = {}
+  /** Arguments passed to the `remove-tracking-parameters` command */
+  export type RemoveTrackingParameters = {}
+  /** Arguments passed to the `open-url-from-clipboard` command */
+  export type OpenUrlFromClipboard = {}
 }
 

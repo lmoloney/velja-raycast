@@ -72,6 +72,34 @@
       "title": "Create Rule",
       "description": "Create a new Velja URL routing rule",
       "mode": "view"
+    },
+    {
+      "name": "open-url-with-velja",
+      "source": "commands/open-url-with-velja.tsx",
+      "title": "Open URL with Velja",
+      "description": "Open a URL through Velja",
+      "mode": "view"
+    },
+    {
+      "name": "open-url-in-browser",
+      "source": "commands/open-url-in-browser.tsx",
+      "title": "Open URL in Browser",
+      "description": "Open a URL in a selected browser/profile",
+      "mode": "view"
+    },
+    {
+      "name": "remove-tracking-parameters",
+      "source": "commands/remove-tracking-parameters.tsx",
+      "title": "Remove Tracking Parameters",
+      "description": "Clean tracking parameters from a URL",
+      "mode": "view"
+    },
+    {
+      "name": "open-url-from-clipboard",
+      "source": "commands/open-url-from-clipboard.tsx",
+      "title": "Open URL from Clipboard",
+      "description": "Open the clipboard URL through Velja",
+      "mode": "view"
     }
   ],
   "preferences": [],
