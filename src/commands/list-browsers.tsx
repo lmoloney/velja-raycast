@@ -1,5 +1,5 @@
 import { Action, ActionPanel, Clipboard, Icon, List, Toast, showToast } from "@raycast/api";
-import { getBrowserSubtitle, getBrowserTitle, getSelectableBrowserIdentifiers } from "../lib/browsers";
+import { getBrowserSubtitle, getBrowserTitle } from "../lib/browsers";
 import { setAlternativeBrowserViaShortcut, setDefaultBrowserViaShortcut } from "../lib/shortcuts";
 import { readVeljaConfig } from "../lib/velja";
 
@@ -56,37 +56,49 @@ export default function Command() {
   const config = readVeljaConfig();
   const defaultBrowser = config.defaultBrowser;
   const alternativeBrowser = config.alternativeBrowser;
-  const browsers = getSelectableBrowserIdentifiers(config.preferredBrowsers, {
-    includeSpecialOptions: false,
-    extraIdentifiers: [defaultBrowser, alternativeBrowser].filter((identifier): identifier is string =>
-      Boolean(identifier),
-    ),
-  });
+  const preferredBrowsers = [...config.preferredBrowsers];
+  const additionalConfiguredBrowsers = [defaultBrowser, alternativeBrowser].reduce<string[]>((result, identifier) => {
+    if (!identifier || preferredBrowsers.includes(identifier) || result.includes(identifier)) {
+      return result;
+    }
+
+    result.push(identifier);
+    return result;
+  }, []);
+
+  function renderBrowserItem(identifier: string) {
+    const accessories: List.Item.Accessory[] = [];
+
+    if (identifier === defaultBrowser) {
+      accessories.push({ tag: "Default" });
+    }
+
+    if (identifier === alternativeBrowser) {
+      accessories.push({ tag: "Alternative" });
+    }
+
+    return (
+      <List.Item
+        key={identifier}
+        title={getBrowserTitle(identifier)}
+        subtitle={getBrowserSubtitle(identifier)}
+        accessories={accessories}
+        icon={Icon.Globe}
+        actions={<BrowserActions identifier={identifier} />}
+      />
+    );
+  }
 
   return (
     <List searchBarPlaceholder="Search Velja browsers and profiles...">
-      {browsers.map((identifier) => {
-        const accessories: List.Item.Accessory[] = [];
-
-        if (identifier === defaultBrowser) {
-          accessories.push({ tag: "Default" });
-        }
-
-        if (identifier === alternativeBrowser) {
-          accessories.push({ tag: "Alternative" });
-        }
-
-        return (
-          <List.Item
-            key={identifier}
-            title={getBrowserTitle(identifier)}
-            subtitle={getBrowserSubtitle(identifier)}
-            accessories={accessories}
-            icon={Icon.Globe}
-            actions={<BrowserActions identifier={identifier} />}
-          />
-        );
-      })}
+      <List.Section title="Shown Browsers (Velja Order)">
+        {preferredBrowsers.map((identifier) => renderBrowserItem(identifier))}
+      </List.Section>
+      {additionalConfiguredBrowsers.length > 0 ? (
+        <List.Section title="Configured but Not in Shown Browsers">
+          {additionalConfiguredBrowsers.map((identifier) => renderBrowserItem(identifier))}
+        </List.Section>
+      ) : null}
     </List>
   );
 }

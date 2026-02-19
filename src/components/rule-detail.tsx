@@ -1,5 +1,8 @@
-import { Action, ActionPanel, Clipboard, Detail, Toast, showToast } from "@raycast/api";
+import { Action, ActionPanel, Clipboard, Detail, Icon, Toast, showToast, useNavigation } from "@raycast/api";
+import { useState } from "react";
+import { getBrowserTitle } from "../lib/browsers";
 import { VeljaRule } from "../lib/types";
+import { RuleBrowserPicker } from "./rule-browser-picker";
 
 function buildRuleMarkdown(rule: VeljaRule): string {
   const matchersTable =
@@ -23,7 +26,7 @@ function buildRuleMarkdown(rule: VeljaRule): string {
 
 ## Status
 - **Enabled:** ${rule.isEnabled ? "Yes" : "No"}
-- **Target Browser:** \`${rule.browser}\`
+- **Target Browser:** ${getBrowserTitle(rule.browser)}
 - **Rule ID:** \`${rule.id}\`
 
 ## Matchers
@@ -42,13 +45,28 @@ ${transformScript}`;
 }
 
 export function RuleDetailView(props: { rule: VeljaRule }) {
-  const { rule } = props;
+  const [rule, setRule] = useState(props.rule);
+  const { push } = useNavigation();
 
   return (
     <Detail
       markdown={buildRuleMarkdown(rule)}
       actions={
         <ActionPanel>
+          <Action
+            title="Remap Target Browser"
+            icon={Icon.Pencil}
+            onAction={() =>
+              push(
+                <RuleBrowserPicker
+                  rule={rule}
+                  onUpdated={(updatedRule) => {
+                    setRule(updatedRule);
+                  }}
+                />,
+              )
+            }
+          />
           <Action
             title="Copy Rule JSON"
             onAction={async () => {

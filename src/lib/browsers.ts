@@ -26,6 +26,12 @@ const BROWSER_NAME_BY_BUNDLE_ID: Record<string, string> = {
 
 const appNameCache = new Map<string, string | null>();
 
+function humanizeBundleId(bundleId: string): string {
+  const leaf = bundleId.split(".").at(-1) ?? bundleId;
+  const withSpaces = leaf.replace(/[-_]/g, " ").replace(/([a-z])([A-Z])/g, "$1 $2");
+  return withSpaces.replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 function resolveInstalledBrowserName(bundleId: string): string | undefined {
   if (appNameCache.has(bundleId)) {
     return appNameCache.get(bundleId) ?? undefined;
@@ -63,12 +69,12 @@ export function getBrowserName(bundleId: string): string {
     return installedName;
   }
 
-  return BROWSER_NAME_BY_BUNDLE_ID[bundleId] ?? bundleId;
+  return BROWSER_NAME_BY_BUNDLE_ID[bundleId] ?? humanizeBundleId(bundleId);
 }
 
 export function getBrowserSubtitle(identifier: string): string {
   if (identifier === PROMPT_MARKER) {
-    return "Velja prompt";
+    return "Show browser prompt";
   }
 
   if (identifier === DEFAULT_BROWSER_MARKER) {
@@ -76,7 +82,7 @@ export function getBrowserSubtitle(identifier: string): string {
   }
 
   const parsed = parseBrowserIdentifier(identifier);
-  return parsed.profile ? `${parsed.bundleId} · Profile: ${parsed.profile}` : parsed.bundleId;
+  return parsed.profile ? `Profile: ${parsed.profile}` : "No profile";
 }
 
 export function getBrowserTitle(identifier: string): string {
@@ -99,9 +105,16 @@ export function parseIdentifier(identifier: string): BrowserIdentifier {
 
 export function getSelectableBrowserIdentifiers(
   preferredBrowsers: string[],
-  options?: { includeSpecialOptions?: boolean; extraIdentifiers?: string[] },
+  options?: {
+    includePrompt?: boolean;
+    includeSystemDefault?: boolean;
+    promptFirst?: boolean;
+    extraIdentifiers?: string[];
+  },
 ): string[] {
-  const includeSpecialOptions = options?.includeSpecialOptions ?? false;
+  const includePrompt = options?.includePrompt ?? false;
+  const includeSystemDefault = options?.includeSystemDefault ?? false;
+  const promptFirst = options?.promptFirst ?? false;
   const extraIdentifiers = options?.extraIdentifiers ?? [];
   const orderedIdentifiers: string[] = [];
 
@@ -113,11 +126,18 @@ export function getSelectableBrowserIdentifiers(
     orderedIdentifiers.push(identifier);
   }
 
+  if (promptFirst && includePrompt) {
+    addIdentifier(PROMPT_MARKER);
+  }
+
   preferredBrowsers.forEach((identifier) => addIdentifier(identifier));
   extraIdentifiers.forEach((identifier) => addIdentifier(identifier));
 
-  if (includeSpecialOptions) {
+  if (!promptFirst && includePrompt) {
     addIdentifier(PROMPT_MARKER);
+  }
+
+  if (includeSystemDefault) {
     addIdentifier(DEFAULT_BROWSER_MARKER);
   }
 

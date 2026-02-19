@@ -1,13 +1,15 @@
 import { Action, ActionPanel, Icon, List, Toast, showToast } from "@raycast/api";
 import { getBrowserSubtitle, getBrowserTitle, getSelectableBrowserIdentifiers } from "../lib/browsers";
 import { setDefaultBrowserViaShortcut } from "../lib/shortcuts";
-import { readVeljaConfig } from "../lib/velja";
+import { DEFAULT_BROWSER_MARKER, readVeljaConfig } from "../lib/velja";
 
 export default function Command() {
   const config = readVeljaConfig();
   const browserIdentifiers = getSelectableBrowserIdentifiers(config.preferredBrowsers, {
-    includeSpecialOptions: true,
-    extraIdentifiers: config.defaultBrowser ? [config.defaultBrowser] : [],
+    includePrompt: true,
+    promptFirst: true,
+    extraIdentifiers:
+      config.defaultBrowser && config.defaultBrowser !== DEFAULT_BROWSER_MARKER ? [config.defaultBrowser] : [],
   });
 
   async function handleSetDefault(identifier: string) {
