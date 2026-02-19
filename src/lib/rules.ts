@@ -71,6 +71,25 @@ export function deleteRule(ruleId: string): void {
   writeRules(updatedRules);
 }
 
+export function updateRuleBrowser(ruleId: string, browserIdentifier: string): VeljaRule {
+  const rules = listRules();
+  const index = rules.findIndex((rule) => rule.id === ruleId);
+
+  if (index < 0) {
+    throw new Error("Rule not found");
+  }
+
+  const updatedRule: VeljaRule = {
+    ...rules[index],
+    browser: browserIdentifier,
+  };
+
+  const updatedRules = [...rules];
+  updatedRules[index] = updatedRule;
+  writeRules(updatedRules);
+  return updatedRule;
+}
+
 function buildMatcher(input: CreateRuleInput): VeljaMatcher[] {
   if (!input.matcherPattern.trim()) {
     return [];

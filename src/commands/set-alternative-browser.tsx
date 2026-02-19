@@ -1,10 +1,14 @@
 import { Action, ActionPanel, Icon, List, Toast, showToast } from "@raycast/api";
-import { getBrowserSubtitle, getBrowserTitle } from "../lib/browsers";
+import { getBrowserSubtitle, getBrowserTitle, getSelectableBrowserIdentifiers } from "../lib/browsers";
 import { setAlternativeBrowserViaShortcut } from "../lib/shortcuts";
 import { readVeljaConfig } from "../lib/velja";
 
 export default function Command() {
   const config = readVeljaConfig();
+  const browserIdentifiers = getSelectableBrowserIdentifiers(config.preferredBrowsers, {
+    includeSpecialOptions: true,
+    extraIdentifiers: config.alternativeBrowser ? [config.alternativeBrowser] : [],
+  });
 
   async function handleSetAlternative(identifier: string) {
     await showToast({ style: Toast.Style.Animated, title: "Updating alternative browser..." });
@@ -23,7 +27,7 @@ export default function Command() {
 
   return (
     <List searchBarPlaceholder="Select Velja alternative browser...">
-      {config.preferredBrowsers.map((identifier) => (
+      {browserIdentifiers.map((identifier) => (
         <List.Item
           key={identifier}
           title={getBrowserTitle(identifier)}

@@ -11,8 +11,62 @@ import {
 } from "@raycast/api";
 import { useEffect, useState } from "react";
 import { RuleDetailView } from "../components/rule-detail";
-import { deleteRule, listRules, toggleRule } from "../lib/rules";
+import { getBrowserSubtitle, getBrowserTitle, getSelectableBrowserIdentifiers } from "../lib/browsers";
+import { deleteRule, listRules, toggleRule, updateRuleBrowser } from "../lib/rules";
 import { VeljaRule } from "../lib/types";
+import { readVeljaConfig } from "../lib/velja";
+
+function RuleBrowserPicker(props: { rule: VeljaRule; onUpdated: (updatedRule: VeljaRule) => void }) {
+  const { rule, onUpdated } = props;
+  const { pop } = useNavigation();
+  let browserIdentifiers: string[] = [];
+
+  try {
+    const config = readVeljaConfig();
+    browserIdentifiers = getSelectableBrowserIdentifiers(config.preferredBrowsers, {
+      includeSpecialOptions: true,
+      extraIdentifiers: [rule.browser],
+    });
+  } catch {
+    browserIdentifiers = [rule.browser];
+  }
+
+  async function handleRemap(identifier: string) {
+    await showToast({ style: Toast.Style.Animated, title: "Updating target browser..." });
+
+    try {
+      const updatedRule = updateRuleBrowser(rule.id, identifier);
+      onUpdated(updatedRule);
+      await showToast({ style: Toast.Style.Success, title: "Updated rule browser target" });
+      pop();
+    } catch (error) {
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Could not update rule browser",
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  return (
+    <List searchBarPlaceholder="Select rule target browser...">
+      {browserIdentifiers.map((identifier) => (
+        <List.Item
+          key={identifier}
+          title={getBrowserTitle(identifier)}
+          subtitle={getBrowserSubtitle(identifier)}
+          icon={Icon.Globe}
+          accessories={identifier === rule.browser ? [{ tag: "Current" }] : []}
+          actions={
+            <ActionPanel>
+              <Action title="Set Target Browser" icon={Icon.CheckCircle} onAction={() => handleRemap(identifier)} />
+            </ActionPanel>
+          }
+        />
+      ))}
+    </List>
+  );
+}
 
 export default function Command() {
   const { push } = useNavigation();
@@ -89,12 +143,24 @@ export default function Command() {
         <List.Item
           key={rule.id}
           title={rule.title}
-          subtitle={rule.browser}
+          subtitle={getBrowserTitle(rule.browser)}
           icon={rule.isEnabled ? Icon.CheckCircle : Icon.CircleDisabled}
           accessories={[{ tag: rule.isEnabled ? "Enabled" : "Disabled" }, { text: `${rule.matchers.length} matchers` }]}
           actions={
             <ActionPanel>
               <Action title="View Details" icon={Icon.Eye} onAction={() => push(<RuleDetailView rule={rule} />)} />
+              <Action.Push
+                title="Change Target Browser"
+                icon={Icon.Pencil}
+                target={
+                  <RuleBrowserPicker
+                    rule={rule}
+                    onUpdated={(updatedRule) =>
+                      setRules((existing) => existing.map((item) => (item.id === updatedRule.id ? updatedRule : item)))
+                    }
+                  />
+                }
+              />
               <Action
                 title={rule.isEnabled ? "Disable Rule" : "Enable Rule"}
                 icon={rule.isEnabled ? Icon.Pause : Icon.Play}

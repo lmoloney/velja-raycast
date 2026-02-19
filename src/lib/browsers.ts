@@ -1,3 +1,5 @@
+import { spawnSync } from "node:child_process";
+import { basename } from "node:path";
 import { BrowserIdentifier } from "./types";
 import { DEFAULT_BROWSER_MARKER, PROMPT_MARKER, parseBrowserIdentifier } from "./velja";
 
@@ -22,7 +24,45 @@ const BROWSER_NAME_BY_BUNDLE_ID: Record<string, string> = {
   "com.kagi.kagimacOS": "Kagi Browser",
 };
 
+const appNameCache = new Map<string, string | null>();
+
+function resolveInstalledBrowserName(bundleId: string): string | undefined {
+  if (appNameCache.has(bundleId)) {
+    return appNameCache.get(bundleId) ?? undefined;
+  }
+
+  const query = `kMDItemCFBundleIdentifier == "${bundleId}"`;
+  const result = spawnSync("mdfind", [query], {
+    encoding: "utf8",
+    maxBuffer: 1024 * 1024 * 8,
+  });
+
+  if (result.status !== 0) {
+    appNameCache.set(bundleId, null);
+    return undefined;
+  }
+
+  const appPath = result.stdout
+    .split("\n")
+    .map((line) => line.trim())
+    .find((line) => line.endsWith(".app"));
+
+  if (!appPath) {
+    appNameCache.set(bundleId, null);
+    return undefined;
+  }
+
+  const appName = basename(appPath, ".app");
+  appNameCache.set(bundleId, appName);
+  return appName;
+}
+
 export function getBrowserName(bundleId: string): string {
+  const installedName = resolveInstalledBrowserName(bundleId);
+  if (installedName) {
+    return installedName;
+  }
+
   return BROWSER_NAME_BY_BUNDLE_ID[bundleId] ?? bundleId;
 }
 
@@ -36,7 +76,7 @@ export function getBrowserSubtitle(identifier: string): string {
   }
 
   const parsed = parseBrowserIdentifier(identifier);
-  return parsed.profile ? `Profile: ${parsed.profile}` : parsed.bundleId;
+  return parsed.profile ? `${parsed.bundleId} · Profile: ${parsed.profile}` : parsed.bundleId;
 }
 
 export function getBrowserTitle(identifier: string): string {
@@ -55,4 +95,31 @@ export function getBrowserTitle(identifier: string): string {
 
 export function parseIdentifier(identifier: string): BrowserIdentifier {
   return parseBrowserIdentifier(identifier);
+}
+
+export function getSelectableBrowserIdentifiers(
+  preferredBrowsers: string[],
+  options?: { includeSpecialOptions?: boolean; extraIdentifiers?: string[] },
+): string[] {
+  const includeSpecialOptions = options?.includeSpecialOptions ?? false;
+  const extraIdentifiers = options?.extraIdentifiers ?? [];
+  const orderedIdentifiers: string[] = [];
+
+  function addIdentifier(identifier?: string) {
+    if (!identifier || orderedIdentifiers.includes(identifier)) {
+      return;
+    }
+
+    orderedIdentifiers.push(identifier);
+  }
+
+  preferredBrowsers.forEach((identifier) => addIdentifier(identifier));
+  extraIdentifiers.forEach((identifier) => addIdentifier(identifier));
+
+  if (includeSpecialOptions) {
+    addIdentifier(PROMPT_MARKER);
+    addIdentifier(DEFAULT_BROWSER_MARKER);
+  }
+
+  return orderedIdentifiers;
 }

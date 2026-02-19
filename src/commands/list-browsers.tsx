@@ -1,5 +1,5 @@
 import { Action, ActionPanel, Clipboard, Icon, List, Toast, showToast } from "@raycast/api";
-import { getBrowserSubtitle, getBrowserTitle } from "../lib/browsers";
+import { getBrowserSubtitle, getBrowserTitle, getSelectableBrowserIdentifiers } from "../lib/browsers";
 import { setAlternativeBrowserViaShortcut, setDefaultBrowserViaShortcut } from "../lib/shortcuts";
 import { readVeljaConfig } from "../lib/velja";
 
@@ -56,15 +56,12 @@ export default function Command() {
   const config = readVeljaConfig();
   const defaultBrowser = config.defaultBrowser;
   const alternativeBrowser = config.alternativeBrowser;
-  const browsers = [...config.preferredBrowsers];
-
-  if (defaultBrowser && !browsers.includes(defaultBrowser)) {
-    browsers.unshift(defaultBrowser);
-  }
-
-  if (alternativeBrowser && !browsers.includes(alternativeBrowser)) {
-    browsers.unshift(alternativeBrowser);
-  }
+  const browsers = getSelectableBrowserIdentifiers(config.preferredBrowsers, {
+    includeSpecialOptions: false,
+    extraIdentifiers: [defaultBrowser, alternativeBrowser].filter((identifier): identifier is string =>
+      Boolean(identifier),
+    ),
+  });
 
   return (
     <List searchBarPlaceholder="Search Velja browsers and profiles...">
