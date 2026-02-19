@@ -25,6 +25,12 @@ declare namespace Preferences {
   export type GetAlternativeBrowser = ExtensionPreferences & {}
   /** Preferences accessible in the `set-alternative-browser` command */
   export type SetAlternativeBrowser = ExtensionPreferences & {}
+  /** Preferences accessible in the `list-rules` command */
+  export type ListRules = ExtensionPreferences & {}
+  /** Preferences accessible in the `view-rule-details` command */
+  export type ViewRuleDetails = ExtensionPreferences & {}
+  /** Preferences accessible in the `create-rule` command */
+  export type CreateRule = ExtensionPreferences & {}
 }
 
 declare namespace Arguments {
@@ -40,5 +46,11 @@ declare namespace Arguments {
   export type GetAlternativeBrowser = {}
   /** Arguments passed to the `set-alternative-browser` command */
   export type SetAlternativeBrowser = {}
+  /** Arguments passed to the `list-rules` command */
+  export type ListRules = {}
+  /** Arguments passed to the `view-rule-details` command */
+  export type ViewRuleDetails = {}
+  /** Arguments passed to the `create-rule` command */
+  export type CreateRule = {}
 }
 

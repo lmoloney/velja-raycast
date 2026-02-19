@@ -51,6 +51,27 @@
       "title": "Set Alternative Browser",
       "description": "Set Velja's alternative browser",
       "mode": "view"
+    },
+    {
+      "name": "list-rules",
+      "source": "commands/list-rules.tsx",
+      "title": "List Rules",
+      "description": "Browse and manage Velja rules",
+      "mode": "view"
+    },
+    {
+      "name": "view-rule-details",
+      "source": "commands/view-rule-details.tsx",
+      "title": "View Rule Details",
+      "description": "Inspect matchers and options for Velja rules",
+      "mode": "view"
+    },
+    {
+      "name": "create-rule",
+      "source": "commands/create-rule.tsx",
+      "title": "Create Rule",
+      "description": "Create a new Velja URL routing rule",
+      "mode": "view"
     }
   ],
   "preferences": [],
