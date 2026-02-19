@@ -16,6 +16,41 @@
       "title": "Velja Status",
       "description": "Check Velja installation and current configuration",
       "mode": "view"
+    },
+    {
+      "name": "list-browsers",
+      "source": "commands/list-browsers.tsx",
+      "title": "List Browsers",
+      "description": "View browsers and profiles detected by Velja",
+      "mode": "view"
+    },
+    {
+      "name": "get-default-browser",
+      "source": "commands/get-default-browser.tsx",
+      "title": "Get Default Browser",
+      "description": "Show Velja's current default browser",
+      "mode": "view"
+    },
+    {
+      "name": "set-default-browser",
+      "source": "commands/set-default-browser.tsx",
+      "title": "Set Default Browser",
+      "description": "Set Velja's default browser",
+      "mode": "view"
+    },
+    {
+      "name": "get-alternative-browser",
+      "source": "commands/get-alternative-browser.tsx",
+      "title": "Get Alternative Browser",
+      "description": "Show Velja's current alternative browser",
+      "mode": "view"
+    },
+    {
+      "name": "set-alternative-browser",
+      "source": "commands/set-alternative-browser.tsx",
+      "title": "Set Alternative Browser",
+      "description": "Set Velja's alternative browser",
+      "mode": "view"
     }
   ],
   "preferences": [],

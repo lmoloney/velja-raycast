@@ -2,10 +2,10 @@ import { execSync, spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { BrowserIdentifier, VeljaConfig, VeljaRule, VeljaStatusSnapshot } from "./types";
 
-const VELJA_APP_PATH = "/Applications/Velja.app";
-const VELJA_BUNDLE_ID = "com.sindresorhus.Velja";
-const PROMPT_MARKER = "com.sindresorhus.Velja.promptMarker";
-const DEFAULT_BROWSER_MARKER = "com.sindresorhus.Velja.defaultBrowserMarker";
+export const VELJA_APP_PATH = "/Applications/Velja.app";
+export const VELJA_BUNDLE_ID = "com.sindresorhus.Velja";
+export const PROMPT_MARKER = "com.sindresorhus.Velja.promptMarker";
+export const DEFAULT_BROWSER_MARKER = "com.sindresorhus.Velja.defaultBrowserMarker";
 
 interface VeljaDefaultsPayload {
   defaultBrowser?: string;
@@ -87,6 +87,15 @@ export function readVeljaConfig(): VeljaConfig {
     preferredBrowsers: payload.preferredBrowsers ?? [],
     rules: parseRules(payload.rules),
   };
+}
+
+export function writeVeljaBrowserPreference(key: "defaultBrowser" | "alternativeBrowser", value: string): void {
+  const result = spawnSync("defaults", ["write", VELJA_BUNDLE_ID, key, "-string", value], { encoding: "utf8" });
+
+  if (result.status !== 0) {
+    const error = result.stderr.trim() || `Failed to update ${key}`;
+    throw new Error(error);
+  }
 }
 
 export function getVeljaStatusSnapshot(): VeljaStatusSnapshot {
