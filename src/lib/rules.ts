@@ -106,3 +106,60 @@ export function createRule(input: CreateRuleInput): VeljaRule {
   writeRules([...rules, newRule]);
   return newRule;
 }
+
+export function exportRulesAsJson(): string {
+  return JSON.stringify(listRules(), null, 2);
+}
+
+function isMatcher(value: unknown): value is VeljaMatcher {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const matcher = value as Record<string, unknown>;
+  return (
+    typeof matcher.id === "string" &&
+    typeof matcher.kind === "string" &&
+    typeof matcher.pattern === "string" &&
+    typeof matcher.fixture === "string"
+  );
+}
+
+function isRule(value: unknown): value is VeljaRule {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const rule = value as Record<string, unknown>;
+  return (
+    typeof rule.id === "string" &&
+    typeof rule.title === "string" &&
+    typeof rule.browser === "string" &&
+    typeof rule.isEnabled === "boolean" &&
+    Array.isArray(rule.matchers) &&
+    rule.matchers.every((matcher) => isMatcher(matcher)) &&
+    Array.isArray(rule.sourceApps) &&
+    rule.sourceApps.every((sourceApp) => typeof sourceApp === "string") &&
+    typeof rule.forceNewWindow === "boolean" &&
+    typeof rule.openInBackground === "boolean" &&
+    typeof rule.onlyFromAirdrop === "boolean" &&
+    typeof rule.runAfterBuiltinRules === "boolean" &&
+    typeof rule.isTransformScriptEnabled === "boolean" &&
+    typeof rule.transformScript === "string"
+  );
+}
+
+export function importRulesFromJson(rulesJson: string): number {
+  const parsed = JSON.parse(rulesJson) as unknown;
+
+  if (!Array.isArray(parsed)) {
+    throw new Error("Rules JSON must be an array.");
+  }
+
+  if (!parsed.every((rule) => isRule(rule))) {
+    throw new Error("Rules JSON does not match the Velja rule schema.");
+  }
+
+  writeRules(parsed);
+  return parsed.length;
+}

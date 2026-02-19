@@ -100,6 +100,34 @@
       "title": "Open URL from Clipboard",
       "description": "Open the clipboard URL through Velja",
       "mode": "view"
+    },
+    {
+      "name": "quick-switch-browser",
+      "source": "commands/quick-switch-browser.tsx",
+      "title": "Quick Switch Browser",
+      "description": "Swap Velja default and alternative browsers",
+      "mode": "view"
+    },
+    {
+      "name": "export-rules",
+      "source": "commands/export-rules.tsx",
+      "title": "Export Rules",
+      "description": "Export Velja rules as JSON",
+      "mode": "view"
+    },
+    {
+      "name": "import-rules",
+      "source": "commands/import-rules.tsx",
+      "title": "Import Rules",
+      "description": "Import Velja rules from JSON",
+      "mode": "view"
+    },
+    {
+      "name": "default-browser-menu-bar",
+      "source": "commands/default-browser-menu-bar.tsx",
+      "title": "Default Browser Menu Bar",
+      "description": "Show the current Velja default browser in the menu bar",
+      "mode": "menu-bar"
     }
   ],
   "preferences": [],

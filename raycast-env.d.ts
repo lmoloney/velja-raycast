@@ -39,6 +39,14 @@ declare namespace Preferences {
   export type RemoveTrackingParameters = ExtensionPreferences & {}
   /** Preferences accessible in the `open-url-from-clipboard` command */
   export type OpenUrlFromClipboard = ExtensionPreferences & {}
+  /** Preferences accessible in the `quick-switch-browser` command */
+  export type QuickSwitchBrowser = ExtensionPreferences & {}
+  /** Preferences accessible in the `export-rules` command */
+  export type ExportRules = ExtensionPreferences & {}
+  /** Preferences accessible in the `import-rules` command */
+  export type ImportRules = ExtensionPreferences & {}
+  /** Preferences accessible in the `default-browser-menu-bar` command */
+  export type DefaultBrowserMenuBar = ExtensionPreferences & {}
 }
 
 declare namespace Arguments {
@@ -68,5 +76,13 @@ declare namespace Arguments {
   export type RemoveTrackingParameters = {}
   /** Arguments passed to the `open-url-from-clipboard` command */
   export type OpenUrlFromClipboard = {}
+  /** Arguments passed to the `quick-switch-browser` command */
+  export type QuickSwitchBrowser = {}
+  /** Arguments passed to the `export-rules` command */
+  export type ExportRules = {}
+  /** Arguments passed to the `import-rules` command */
+  export type ImportRules = {}
+  /** Arguments passed to the `default-browser-menu-bar` command */
+  export type DefaultBrowserMenuBar = {}
 }
 
