@@ -16,9 +16,22 @@ const TRACKING_PARAMETERS = [
   "mc_eid",
 ];
 
+/**
+ * Normalizes a URL string for use with Velja and the system `open` command.
+ *
+ * - Any URL that already contains a `scheme://` authority (e.g. `https://`,
+ *   `http://`, `vscode://`, `msteams://`) is returned unchanged.
+ * - If no scheme is present the URL defaults to HTTPS (e.g. `"example.com"` →
+ *   `"https://example.com"`). Use an explicit `http://` prefix for plain-HTTP
+ *   endpoints such as local development servers (e.g. `"http://localhost:3000"`).
+ *
+ * Note: `scheme:`-only URLs without an authority component (e.g. `mailto:`,
+ * `tel:`) are outside the scope of this function and are not handled.
+ */
 export function normalizeUrl(input: string): string {
   const trimmed = input.trim();
-  const normalized = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  // Preserve any existing scheme (http, https, vscode, msteams, etc.); bare URLs default to https.
+  const normalized = /^[a-zA-Z][a-zA-Z0-9+\-.]*:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
   const url = new URL(normalized);
   return url.toString();
 }
