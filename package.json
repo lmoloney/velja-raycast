@@ -232,7 +232,24 @@
       }
     ]
   },
-  "preferences": [],
+  "preferences": [
+    {
+      "name": "profileCacheTtlMinutes",
+      "type": "dropdown",
+      "title": "Browser Profile Cache Duration",
+      "description": "How long Velja caches browser profile names before re-reading them from disk. Reduce this if you frequently add or rename profiles.",
+      "required": false,
+      "default": "5",
+      "data": [
+        { "title": "1 minute", "value": "1" },
+        { "title": "2 minutes", "value": "2" },
+        { "title": "5 minutes", "value": "5" },
+        { "title": "10 minutes", "value": "10" },
+        { "title": "15 minutes", "value": "15" },
+        { "title": "30 minutes", "value": "30" }
+      ]
+    }
+  ],
   "dependencies": {
     "@raycast/api": "^1.40.0"
   },

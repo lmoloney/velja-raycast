@@ -1,4 +1,4 @@
-import { Icon, type Image } from "@raycast/api";
+import { Icon, getPreferenceValues, type Image } from "@raycast/api";
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
@@ -27,9 +27,25 @@ const BROWSER_NAME_BY_BUNDLE_ID: Record<string, string> = {
   "com.kagi.kagimacOS": "Kagi Browser",
 };
 
+const DEFAULT_PROFILE_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes (matches preference default)
+
+function getProfileCacheTtlMs(): number {
+  try {
+    const { profileCacheTtlMinutes } = getPreferenceValues<{ profileCacheTtlMinutes: string }>();
+    const minutes = parseInt(profileCacheTtlMinutes, 10);
+    if (!isNaN(minutes) && minutes > 0) {
+      return minutes * 60 * 1000;
+    }
+  } catch {
+    // Fallback when called outside a Raycast command context (e.g., tests)
+  }
+  return DEFAULT_PROFILE_CACHE_TTL_MS;
+}
+
 const appPathCache = new Map<string, string | null>();
 const appNameCache = new Map<string, string | null>();
 const profileNameCache = new Map<string, Map<string, string> | null>();
+const profileNameCacheTimestamps = new Map<string, number>();
 
 const CHROMIUM_LOCAL_STATE_PATHS_BY_BUNDLE_ID: Record<string, string[]> = {
   "com.microsoft.edgemac": ["Library/Application Support/Microsoft Edge/Local State"],
@@ -106,13 +122,17 @@ function resolveInstalledBrowserName(bundleId: string): string | undefined {
 }
 
 function resolveProfileName(bundleId: string, profileId: string): string | undefined {
-  if (profileNameCache.has(bundleId)) {
+  const cachedAt = profileNameCacheTimestamps.get(bundleId);
+  const isCacheValid = cachedAt !== undefined && Date.now() - cachedAt < getProfileCacheTtlMs();
+
+  if (isCacheValid && profileNameCache.has(bundleId)) {
     return profileNameCache.get(bundleId)?.get(profileId);
   }
 
   const localStateCandidates = CHROMIUM_LOCAL_STATE_PATHS_BY_BUNDLE_ID[bundleId];
   if (!localStateCandidates) {
     profileNameCache.set(bundleId, null);
+    profileNameCacheTimestamps.set(bundleId, Date.now());
     return undefined;
   }
 
@@ -122,6 +142,7 @@ function resolveProfileName(bundleId: string, profileId: string): string | undef
 
   if (!localStatePath) {
     profileNameCache.set(bundleId, null);
+    profileNameCacheTimestamps.set(bundleId, Date.now());
     return undefined;
   }
 
@@ -132,6 +153,7 @@ function resolveProfileName(bundleId: string, profileId: string): string | undef
 
     if (!infoCache || typeof infoCache !== "object") {
       profileNameCache.set(bundleId, null);
+      profileNameCacheTimestamps.set(bundleId, Date.now());
       return undefined;
     }
 
@@ -148,9 +170,11 @@ function resolveProfileName(bundleId: string, profileId: string): string | undef
     }
 
     profileNameCache.set(bundleId, profileNames.size > 0 ? profileNames : null);
+    profileNameCacheTimestamps.set(bundleId, Date.now());
     return profileNames.get(profileId);
   } catch {
     profileNameCache.set(bundleId, null);
+    profileNameCacheTimestamps.set(bundleId, Date.now());
     return undefined;
   }
 }
