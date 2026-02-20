@@ -195,3 +195,77 @@ test("domain with port embedded in a full URL matches the hostname without the p
   const matchKinds = matches.flatMap((m) => m.matchedMatchers.map((mm) => mm.kind)).sort();
   assert.deepEqual(matchKinds, ["host", "urlPrefix"]);
 });
+
+// ─── App-link / custom-scheme tests ────────────────────────────────────────
+
+test("urlPrefix rule matches VS Code deep links (vscode:// scheme)", () => {
+  const rules = [
+    makeRule("A1", {
+      id: "MA1",
+      kind: "urlPrefix",
+      pattern: "vscode://",
+      fixture: "vscode://file/path/to/file",
+    }),
+  ];
+
+  // Any vscode:// deep link should match.
+  assert.equal(findRulesByDomainOrUrl(rules, "vscode://file/path/to/file").length, 1);
+  assert.equal(
+    findRulesByDomainOrUrl(rules, "vscode://vscode.github-authentication/did-authenticate").length,
+    1,
+  );
+
+  // A different scheme must not fire the rule.
+  assert.equal(findRulesByDomainOrUrl(rules, "https://vscode.dev/").length, 0);
+});
+
+test("urlPrefix rule matches Slack deep links (slack:// scheme)", () => {
+  const rules = [
+    makeRule("A2", {
+      id: "MA2",
+      kind: "urlPrefix",
+      pattern: "slack://",
+      fixture: "slack://channel?team=T123&id=C456",
+    }),
+  ];
+
+  assert.equal(findRulesByDomainOrUrl(rules, "slack://channel?team=T123&id=C456").length, 1);
+  assert.equal(findRulesByDomainOrUrl(rules, "slack://open").length, 1);
+
+  // An unrelated scheme must not match.
+  assert.equal(findRulesByDomainOrUrl(rules, "https://slack.com/").length, 0);
+});
+
+test("urlPrefix rule matches Microsoft Teams deep links (msteams:// scheme)", () => {
+  const rules = [
+    makeRule("A3", {
+      id: "MA3",
+      kind: "urlPrefix",
+      pattern: "msteams://",
+      fixture: "msteams://l/meetup-join/thread.v2",
+    }),
+  ];
+
+  assert.equal(findRulesByDomainOrUrl(rules, "msteams://l/meetup-join/thread.v2").length, 1);
+
+  // An unrelated scheme must not match.
+  assert.equal(findRulesByDomainOrUrl(rules, "https://teams.microsoft.com/").length, 0);
+});
+
+test("distinct app-link scheme rules do not cross-match each other", () => {
+  const rules = [
+    makeRule("A4", { id: "MA4", kind: "urlPrefix", pattern: "vscode://", fixture: "vscode://file" }),
+    makeRule("A5", { id: "MA5", kind: "urlPrefix", pattern: "slack://", fixture: "slack://open" }),
+    makeRule("A6", { id: "MA6", kind: "urlPrefix", pattern: "msteams://", fixture: "msteams://l/join" }),
+  ];
+
+  // Each deep link URL must match only its own rule.
+  assert.equal(findRulesByDomainOrUrl(rules, "vscode://file/path").length, 1);
+  assert.equal(findRulesByDomainOrUrl(rules, "vscode://file/path")[0].rule.id, "A4");
+
+  assert.equal(findRulesByDomainOrUrl(rules, "slack://channel?team=T1").length, 1);
+  assert.equal(findRulesByDomainOrUrl(rules, "slack://channel?team=T1")[0].rule.id, "A5");
+
+  assert.equal(findRulesByDomainOrUrl(rules, "msteams://l/join/thread").length, 1);
+  assert.equal(findRulesByDomainOrUrl(rules, "msteams://l/join/thread")[0].rule.id, "A6");
+});
