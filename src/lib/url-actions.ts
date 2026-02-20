@@ -16,8 +16,17 @@ const TRACKING_PARAMETERS = [
   "mc_eid",
 ];
 
+/**
+ * Normalizes a URL string for use with Velja and the system `open` command.
+ *
+ * - If the input already has an `http://` or `https://` scheme it is preserved as-is.
+ * - If no scheme is present the URL defaults to HTTPS (e.g. `"example.com"` →
+ *   `"https://example.com"`). Use an explicit `http://` prefix for plain-HTTP
+ *   endpoints such as local development servers (e.g. `"http://localhost:3000"`).
+ */
 export function normalizeUrl(input: string): string {
   const trimmed = input.trim();
+  // Preserve existing http/https scheme; bare URLs (no scheme) default to https.
   const normalized = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
   const url = new URL(normalized);
   return url.toString();
