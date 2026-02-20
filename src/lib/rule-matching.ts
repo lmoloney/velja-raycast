@@ -100,9 +100,22 @@ function buildDomainQueryContext(query: string): DomainQueryContext {
     urlCandidates.push(normalized);
   }
 
+  // Add the original query first in case it is already a fully-qualified URL
+  // (e.g. "https://example.com/path"). This preserves any path/query/fragment
+  // that the user typed, which matters for urlPrefix matchers.
   addUrlCandidate(query);
 
   if (host) {
+    // When the user types a bare domain (e.g. "example.com") there is no scheme,
+    // so we cannot know whether a matching rule was authored with http or https.
+    // We therefore add both schemes so that urlPrefix matchers like
+    // "https://example.com" and "http://example.com" both get a chance to match.
+    //
+    // Each scheme is also added with and without a trailing slash because
+    // "https://example.com" is a valid URL prefix pattern in Velja and
+    // "https://example.com/" is a different—but equally common—variant.
+    // A rule using "https://example.com/" as its prefix would not match the
+    // no-slash form and vice-versa, so both are required.
     addUrlCandidate(`https://${host}`);
     addUrlCandidate(`https://${host}/`);
     addUrlCandidate(`http://${host}`);
