@@ -258,7 +258,7 @@
     "@types/node": "18.18.4",
     "@types/react": "19.0.10",
     "eslint": "^8.51.0",
-    "prettier": "^3.0.3",
+    "prettier": "^3.8.1",
     "tsx": "^4.20.5",
     "typescript": "^5.2.2"
   },
