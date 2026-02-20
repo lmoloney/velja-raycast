@@ -20,16 +20,50 @@ export default function Command() {
   const [defaultBrowser, setDefaultBrowser] = useState<string | undefined>(() => readVeljaConfig().defaultBrowser);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      try {
-        const config = readVeljaConfig();
-        setDefaultBrowser(config.defaultBrowser);
-      } catch {
-        setDefaultBrowser(undefined);
-      }
-    }, 5000);
+    let cancelled = false;
+    let timeoutId: NodeJS.Timeout | undefined;
+    let retryCount = 0;
 
-    return () => clearInterval(timer);
+    const BASE_DELAY_MS = 5000;
+    const MAX_DELAY_MS = 5 * 60 * 1000; // cap backoff at 5 minutes
+
+    const scheduleNext = (delayMs: number) => {
+      if (cancelled) {
+        return;
+      }
+
+      timeoutId = setTimeout(() => {
+        if (cancelled) {
+          return;
+        }
+
+        try {
+          const config = readVeljaConfig();
+          setDefaultBrowser(config.defaultBrowser);
+
+          // Reset backoff on success
+          retryCount = 0;
+          scheduleNext(BASE_DELAY_MS);
+        } catch {
+          setDefaultBrowser(undefined);
+
+          // Exponential backoff on failure
+          retryCount += 1;
+          const backoffDelay = Math.min(BASE_DELAY_MS * 2 ** retryCount, MAX_DELAY_MS);
+          scheduleNext(backoffDelay);
+        }
+      }, delayMs);
+    };
+
+    // Start polling with the base delay
+    scheduleNext(BASE_DELAY_MS);
+
+    return () => {
+      cancelled = true;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, []);
 
   const title = getMenuBarTitle(defaultBrowser);
