@@ -144,6 +144,10 @@ function matchHostSuffix(matcher: VeljaMatcher, context: DomainQueryContext): Do
     return undefined;
   }
 
+  // Exact match handles the base domain (e.g. "medium.com" matches pattern "medium.com").
+  // The ends-with-dot-prefix check handles any subdomain depth
+  // (e.g. "blog.medium.com" and "a.b.medium.com" both end with ".medium.com"),
+  // while preventing false positives against unrelated domains like "notmedium.com".
   const matches = context.host === normalizedPattern || context.host.endsWith(`.${normalizedPattern}`);
   if (!matches) {
     return undefined;
