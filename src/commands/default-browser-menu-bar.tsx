@@ -1,7 +1,7 @@
-import { Icon, MenuBarExtra } from "@raycast/api";
+import { MenuBarExtra } from "@raycast/api";
 import { useEffect, useState } from "react";
 import { readVeljaConfig } from "../lib/velja";
-import { getBrowserTitle } from "../lib/browsers";
+import { getBrowserIcon, getBrowserTitle } from "../lib/browsers";
 
 function getMenuBarTitle(identifier?: string): string {
   if (!identifier) {
@@ -35,7 +35,7 @@ export default function Command() {
   const title = getMenuBarTitle(defaultBrowser);
 
   return (
-    <MenuBarExtra icon={Icon.Globe} title={title}>
+    <MenuBarExtra icon={getBrowserIcon(defaultBrowser ?? "")} title={title}>
       <MenuBarExtra.Item title={`Default: ${getBrowserTitle(defaultBrowser ?? "")}`} />
       <MenuBarExtra.Section>
         <MenuBarExtra.Item

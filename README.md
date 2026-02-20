@@ -7,18 +7,26 @@ A [Raycast](https://www.raycast.com/) extension for controlling [Velja](https://
 ## Features
 
 ### Browser Management
+
 - **List Browsers** — View all installed browsers and profiles detected by Velja
 - **Get/Set Default Browser** — View or change the primary browser
 - **Get/Set Alternative Browser** — View or change the alternative browser (triggered with Fn key)
 
 ### Rules Management
+
 - **List Rules** — View all routing rules with their status
 - **Toggle Rules** — Enable or disable rules
-- **View Rule Details** — Inspect matchers, source apps, browser targets, and transform scripts
-- **Create Rules** — Build new routing rules with URL matchers and source app filters
+- **Create Rules (AI Draft + Manual)** — Generate drafts from natural language or build rules manually
 - **Delete Rules** — Remove rules you no longer need
 
+### Raycast AI Extension
+
+- Mention `@velja-raycast` in Quick AI / AI Chat / AI Commands
+- AI can inspect existing rules (including domain-aware lookups) and create Velja rules
+- Manual Create Rule form remains available for direct, in-command editing
+
 ### URL Actions
+
 - **Open URL with Velja** — Open a URL respecting your Velja rules
 - **Open URL in Browser** — Open a URL in a specific browser or profile
 - **Remove Tracking Parameters** — Clean tracking parameters from URLs
@@ -45,10 +53,13 @@ npm run dev
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed development setup and guidelines.
+For release preparation, see [docs/release-checklist.md](docs/release-checklist.md).
+For AI usage details, see [docs/ai-extension-usage.md](docs/ai-extension-usage.md).
 
 ## Architecture
 
 This extension uses a hybrid integration approach:
+
 - **macOS Shortcuts** for Velja actions (get/set browsers, open URLs)
 - **Plist read/write** for configuration and rule management
 
@@ -58,13 +69,13 @@ See [docs/architecture.md](docs/architecture.md) for detailed architecture decis
 
 This project is under active development. See the [GitHub Issues](https://github.com/lmoloney/velja-raycast/issues) for the current roadmap.
 
-| Phase | Status | Description |
-|-------|--------|-------------|
-| Phase 1 | 🔜 | Project setup & core infrastructure |
-| Phase 2 | 📋 | Browser management commands |
-| Phase 3 | 📋 | Rules management |
-| Phase 4 | 📋 | URL actions |
-| Phase 5 | 📋 | Polish & advanced features |
+| Phase   | Status | Description                         |
+| ------- | ------ | ----------------------------------- |
+| Phase 1 | 🔜     | Project setup & core infrastructure |
+| Phase 2 | 📋     | Browser management commands         |
+| Phase 3 | 📋     | Rules management                    |
+| Phase 4 | 📋     | URL actions                         |
+| Phase 5 | 📋     | Polish & advanced features          |
 
 ## License
 

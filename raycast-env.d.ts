@@ -27,8 +27,6 @@ declare namespace Preferences {
   export type SetAlternativeBrowser = ExtensionPreferences & {}
   /** Preferences accessible in the `list-rules` command */
   export type ListRules = ExtensionPreferences & {}
-  /** Preferences accessible in the `view-rule-details` command */
-  export type ViewRuleDetails = ExtensionPreferences & {}
   /** Preferences accessible in the `create-rule` command */
   export type CreateRule = ExtensionPreferences & {}
   /** Preferences accessible in the `open-url-with-velja` command */
@@ -64,8 +62,6 @@ declare namespace Arguments {
   export type SetAlternativeBrowser = {}
   /** Arguments passed to the `list-rules` command */
   export type ListRules = {}
-  /** Arguments passed to the `view-rule-details` command */
-  export type ViewRuleDetails = {}
   /** Arguments passed to the `create-rule` command */
   export type CreateRule = {}
   /** Arguments passed to the `open-url-with-velja` command */

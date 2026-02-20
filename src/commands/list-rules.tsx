@@ -12,7 +12,7 @@ import {
 import { useEffect, useState } from "react";
 import { RuleBrowserPicker } from "../components/rule-browser-picker";
 import { RuleDetailView } from "../components/rule-detail";
-import { getBrowserTitle } from "../lib/browsers";
+import { getBrowserIcon, getBrowserTitle } from "../lib/browsers";
 import { deleteRule, listRules, toggleRule } from "../lib/rules";
 import { VeljaRule } from "../lib/types";
 
@@ -92,7 +92,7 @@ export default function Command() {
           key={rule.id}
           title={rule.title}
           subtitle={getBrowserTitle(rule.browser)}
-          icon={rule.isEnabled ? Icon.CheckCircle : Icon.CircleDisabled}
+          icon={getBrowserIcon(rule.browser)}
           accessories={[{ tag: rule.isEnabled ? "Enabled" : "Disabled" }, { text: `${rule.matchers.length} matchers` }]}
           actions={
             <ActionPanel>

@@ -1,5 +1,8 @@
+import { Icon, type Image } from "@raycast/api";
 import { spawnSync } from "node:child_process";
-import { basename } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { basename, join } from "node:path";
 import { BrowserIdentifier } from "./types";
 import { DEFAULT_BROWSER_MARKER, PROMPT_MARKER, parseBrowserIdentifier } from "./velja";
 
@@ -24,7 +27,26 @@ const BROWSER_NAME_BY_BUNDLE_ID: Record<string, string> = {
   "com.kagi.kagimacOS": "Kagi Browser",
 };
 
+const appPathCache = new Map<string, string | null>();
 const appNameCache = new Map<string, string | null>();
+const profileNameCache = new Map<string, Map<string, string> | null>();
+
+const CHROMIUM_LOCAL_STATE_PATHS_BY_BUNDLE_ID: Record<string, string[]> = {
+  "com.microsoft.edgemac": ["Library/Application Support/Microsoft Edge/Local State"],
+  "com.microsoft.edgemac.Beta": ["Library/Application Support/Microsoft Edge Beta/Local State"],
+  "com.microsoft.edgemac.Dev": ["Library/Application Support/Microsoft Edge Dev/Local State"],
+  "com.google.Chrome": ["Library/Application Support/Google/Chrome/Local State"],
+  "com.google.Chrome.beta": ["Library/Application Support/Google/Chrome Beta/Local State"],
+  "com.google.Chrome.canary": ["Library/Application Support/Google/Chrome Canary/Local State"],
+  "com.brave.Browser": ["Library/Application Support/BraveSoftware/Brave-Browser/Local State"],
+  "com.brave.Browser.beta": ["Library/Application Support/BraveSoftware/Brave-Browser-Beta/Local State"],
+  "com.brave.Browser.nightly": ["Library/Application Support/BraveSoftware/Brave-Browser-Nightly/Local State"],
+  "ai.perplexity.comet": [
+    "Library/Application Support/Comet/Local State",
+    "Library/Application Support/Perplexity Comet/Local State",
+  ],
+  "company.thebrowser.Browser": ["Library/Application Support/Arc/User Data/Local State"],
+};
 
 function humanizeBundleId(bundleId: string): string {
   const leaf = bundleId.split(".").at(-1) ?? bundleId;
@@ -32,9 +54,14 @@ function humanizeBundleId(bundleId: string): string {
   return withSpaces.replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-function resolveInstalledBrowserName(bundleId: string): string | undefined {
-  if (appNameCache.has(bundleId)) {
-    return appNameCache.get(bundleId) ?? undefined;
+function resolveInstalledAppPath(bundleId: string): string | undefined {
+  if (appPathCache.has(bundleId)) {
+    return appPathCache.get(bundleId) ?? undefined;
+  }
+
+  if (!bundleId) {
+    appPathCache.set(bundleId, null);
+    return undefined;
   }
 
   const query = `kMDItemCFBundleIdentifier == "${bundleId}"`;
@@ -44,7 +71,7 @@ function resolveInstalledBrowserName(bundleId: string): string | undefined {
   });
 
   if (result.status !== 0) {
-    appNameCache.set(bundleId, null);
+    appPathCache.set(bundleId, null);
     return undefined;
   }
 
@@ -53,6 +80,21 @@ function resolveInstalledBrowserName(bundleId: string): string | undefined {
     .map((line) => line.trim())
     .find((line) => line.endsWith(".app"));
 
+  if (!appPath) {
+    appPathCache.set(bundleId, null);
+    return undefined;
+  }
+
+  appPathCache.set(bundleId, appPath);
+  return appPath;
+}
+
+function resolveInstalledBrowserName(bundleId: string): string | undefined {
+  if (appNameCache.has(bundleId)) {
+    return appNameCache.get(bundleId) ?? undefined;
+  }
+
+  const appPath = resolveInstalledAppPath(bundleId);
   if (!appPath) {
     appNameCache.set(bundleId, null);
     return undefined;
@@ -63,6 +105,56 @@ function resolveInstalledBrowserName(bundleId: string): string | undefined {
   return appName;
 }
 
+function resolveProfileName(bundleId: string, profileId: string): string | undefined {
+  if (profileNameCache.has(bundleId)) {
+    return profileNameCache.get(bundleId)?.get(profileId);
+  }
+
+  const localStateCandidates = CHROMIUM_LOCAL_STATE_PATHS_BY_BUNDLE_ID[bundleId];
+  if (!localStateCandidates) {
+    profileNameCache.set(bundleId, null);
+    return undefined;
+  }
+
+  const localStatePath = localStateCandidates
+    .map((relativePath) => join(homedir(), relativePath))
+    .find((candidatePath) => existsSync(candidatePath));
+
+  if (!localStatePath) {
+    profileNameCache.set(bundleId, null);
+    return undefined;
+  }
+
+  try {
+    const raw = readFileSync(localStatePath, "utf8");
+    const parsed = JSON.parse(raw) as { profile?: { info_cache?: Record<string, { name?: unknown }> } };
+    const infoCache = parsed.profile?.info_cache;
+
+    if (!infoCache || typeof infoCache !== "object") {
+      profileNameCache.set(bundleId, null);
+      return undefined;
+    }
+
+    const profileNames = new Map<string, string>();
+    for (const [candidateProfileId, profileInfo] of Object.entries(infoCache)) {
+      if (!profileInfo || typeof profileInfo !== "object") {
+        continue;
+      }
+
+      const profileName = profileInfo.name;
+      if (typeof profileName === "string" && profileName.trim().length > 0) {
+        profileNames.set(candidateProfileId, profileName.trim());
+      }
+    }
+
+    profileNameCache.set(bundleId, profileNames.size > 0 ? profileNames : null);
+    return profileNames.get(profileId);
+  } catch {
+    profileNameCache.set(bundleId, null);
+    return undefined;
+  }
+}
+
 export function getBrowserName(bundleId: string): string {
   const installedName = resolveInstalledBrowserName(bundleId);
   if (installedName) {
@@ -70,6 +162,16 @@ export function getBrowserName(bundleId: string): string {
   }
 
   return BROWSER_NAME_BY_BUNDLE_ID[bundleId] ?? humanizeBundleId(bundleId);
+}
+
+export function getBrowserIcon(identifier: string): Image.ImageLike {
+  if (!identifier || identifier === PROMPT_MARKER || identifier === DEFAULT_BROWSER_MARKER) {
+    return Icon.Globe;
+  }
+
+  const parsed = parseBrowserIdentifier(identifier);
+  const appPath = resolveInstalledAppPath(parsed.bundleId);
+  return appPath ? { fileIcon: appPath } : Icon.Globe;
 }
 
 export function getBrowserSubtitle(identifier: string): string {
@@ -82,7 +184,12 @@ export function getBrowserSubtitle(identifier: string): string {
   }
 
   const parsed = parseBrowserIdentifier(identifier);
-  return parsed.profile ? `Profile: ${parsed.profile}` : "No profile";
+  if (!parsed.profile) {
+    return "No profile";
+  }
+
+  const profileName = resolveProfileName(parsed.bundleId, parsed.profile);
+  return profileName && profileName !== parsed.profile ? `Stored as: ${parsed.profile}` : `Profile: ${parsed.profile}`;
 }
 
 export function getBrowserTitle(identifier: string): string {
@@ -96,7 +203,12 @@ export function getBrowserTitle(identifier: string): string {
 
   const parsed = parseBrowserIdentifier(identifier);
   const browserName = getBrowserName(parsed.bundleId);
-  return parsed.profile ? `${browserName} (${parsed.profile})` : browserName;
+  if (!parsed.profile) {
+    return browserName;
+  }
+
+  const profileName = resolveProfileName(parsed.bundleId, parsed.profile) ?? parsed.profile;
+  return `${browserName} (${profileName})`;
 }
 
 export function parseIdentifier(identifier: string): BrowserIdentifier {

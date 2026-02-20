@@ -1,5 +1,5 @@
 import { Action, ActionPanel, Form, Toast, showToast } from "@raycast/api";
-import { getBrowserTitle } from "../lib/browsers";
+import { getBrowserIcon, getBrowserTitle } from "../lib/browsers";
 import { readVeljaConfig } from "../lib/velja";
 import { openUrlInBrowserProfile } from "../lib/url-actions";
 
@@ -53,7 +53,12 @@ export default function Command() {
       <Form.TextField id="url" title="URL" placeholder="https://example.com" />
       <Form.Dropdown id="browser" title="Browser" defaultValue={browsers[0]}>
         {browsers.map((identifier) => (
-          <Form.Dropdown.Item key={identifier} value={identifier} title={getBrowserTitle(identifier)} />
+          <Form.Dropdown.Item
+            key={identifier}
+            value={identifier}
+            title={getBrowserTitle(identifier)}
+            icon={getBrowserIcon(identifier)}
+          />
         ))}
       </Form.Dropdown>
     </Form>

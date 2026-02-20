@@ -22,8 +22,13 @@ function toVeljaUuid(): string {
   return randomUUID().toUpperCase();
 }
 
+function quoteDefaultsArrayString(value: string): string {
+  const escaped = value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  return `"${escaped}"`;
+}
+
 function writeRules(rules: VeljaRule[]): void {
-  const serializedRules = rules.map((rule) => JSON.stringify(rule));
+  const serializedRules = rules.map((rule) => quoteDefaultsArrayString(JSON.stringify(rule)));
   const args = ["write", VELJA_BUNDLE_ID, "rules", "-array", ...serializedRules];
 
   const result = spawnSync("defaults", args, {

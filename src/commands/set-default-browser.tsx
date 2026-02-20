@@ -1,5 +1,5 @@
 import { Action, ActionPanel, Icon, List, Toast, showToast } from "@raycast/api";
-import { getBrowserSubtitle, getBrowserTitle, getSelectableBrowserIdentifiers } from "../lib/browsers";
+import { getBrowserIcon, getBrowserSubtitle, getBrowserTitle, getSelectableBrowserIdentifiers } from "../lib/browsers";
 import { setDefaultBrowserViaShortcut } from "../lib/shortcuts";
 import { DEFAULT_BROWSER_MARKER, readVeljaConfig } from "../lib/velja";
 
@@ -34,7 +34,7 @@ export default function Command() {
           key={identifier}
           title={getBrowserTitle(identifier)}
           subtitle={getBrowserSubtitle(identifier)}
-          icon={Icon.Globe}
+          icon={getBrowserIcon(identifier)}
           accessories={identifier === config.defaultBrowser ? [{ tag: "Current" }] : []}
           actions={
             <ActionPanel>

@@ -1,5 +1,5 @@
 import { Action, ActionPanel, Icon, List, Toast, showToast, useNavigation } from "@raycast/api";
-import { getBrowserSubtitle, getBrowserTitle, getSelectableBrowserIdentifiers } from "../lib/browsers";
+import { getBrowserIcon, getBrowserSubtitle, getBrowserTitle, getSelectableBrowserIdentifiers } from "../lib/browsers";
 import { updateRuleBrowser } from "../lib/rules";
 import { VeljaRule } from "../lib/types";
 import { DEFAULT_BROWSER_MARKER, readVeljaConfig } from "../lib/velja";
@@ -44,7 +44,7 @@ export function RuleBrowserPicker(props: { rule: VeljaRule; onUpdated?: (updated
           key={identifier}
           title={getBrowserTitle(identifier)}
           subtitle={getBrowserSubtitle(identifier)}
-          icon={Icon.Globe}
+          icon={getBrowserIcon(identifier)}
           accessories={identifier === rule.browser ? [{ tag: "Current" }] : []}
           actions={
             <ActionPanel>

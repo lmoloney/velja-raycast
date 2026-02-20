@@ -60,17 +60,10 @@
       "mode": "view"
     },
     {
-      "name": "view-rule-details",
-      "source": "commands/view-rule-details.tsx",
-      "title": "View Rule Details",
-      "description": "Inspect matchers and options for Velja rules",
-      "mode": "view"
-    },
-    {
       "name": "create-rule",
       "source": "commands/create-rule.tsx",
       "title": "Create Rule",
-      "description": "Create a new Velja URL routing rule",
+      "description": "Create a new Velja URL routing rule with optional AI draft",
       "mode": "view"
     },
     {
@@ -130,6 +123,115 @@
       "mode": "menu-bar"
     }
   ],
+  "tools": [
+    {
+      "name": "get-preferred-browsers",
+      "title": "Get Preferred Browsers",
+      "description": "List available Velja browser/profile identifiers in shown-browser order, including Prompt."
+    },
+    {
+      "name": "list-velja-rules",
+      "title": "List Velja Rules",
+      "description": "List existing Velja rules with matcher and browser summaries."
+    },
+    {
+      "name": "find-velja-rules-by-domain",
+      "title": "Find Velja Rules by Domain",
+      "description": "Find existing Velja rules that can match a given domain or URL across host, hostSuffix, and urlPrefix matchers."
+    },
+    {
+      "name": "create-velja-rule",
+      "title": "Create Velja Rule",
+      "description": "Create a Velja rule with browser target, optional matcher, source apps, and behavior flags."
+    }
+  ],
+  "ai": {
+    "instructions": "For questions about existing Velja rules, call list-velja-rules for broad overviews and find-velja-rules-by-domain for domain or URL queries. Treat matcher kinds as: host = exact host, hostSuffix = domain/subdomain suffix, urlPrefix = URL prefix. Never call create-velja-rule unless the user explicitly asks to create or change a rule. When creating Velja rules, call get-preferred-browsers first and use an exact browser identifier from that tool. For domain-based matcher selection, default matcherKind to hostSuffix unless the user asks for exact host or URL prefix behavior. Ask follow-up questions when required creation details are missing.",
+    "evals": [
+      {
+        "input": "@velja-raycast What rules do I have for medium.com?",
+        "mocks": {
+          "find-velja-rules-by-domain": {
+            "query": "medium.com",
+            "totalMatches": 1,
+            "rules": [
+              {
+                "id": "RULE-1",
+                "title": "Medium to Safari",
+                "isEnabled": true,
+                "browser": "com.apple.Safari",
+                "browserTitle": "Safari",
+                "sourceApps": [],
+                "matchedMatchers": [
+                  {
+                    "matcherId": "M-1",
+                    "kind": "hostSuffix",
+                    "pattern": "medium.com",
+                    "fixture": "https://medium.com",
+                    "matchedValue": "medium.com"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "expected": [
+          {
+            "callsTool": {
+              "name": "find-velja-rules-by-domain",
+              "arguments": {
+                "domainOrUrl": {
+                  "includes": "medium.com"
+                }
+              }
+            }
+          },
+          {
+            "not": {
+              "callsTool": "create-velja-rule"
+            }
+          }
+        ]
+      },
+      {
+        "input": "@velja-raycast show me all my rules",
+        "mocks": {
+          "list-velja-rules": {
+            "totalRules": 1,
+            "rules": [
+              {
+                "id": "RULE-1",
+                "title": "Example Rule",
+                "isEnabled": true,
+                "browser": "com.apple.Safari",
+                "browserTitle": "Safari",
+                "matcherCount": 1,
+                "sourceAppCount": 0,
+                "matchers": [
+                  {
+                    "id": "M-1",
+                    "kind": "hostSuffix",
+                    "pattern": "example.com",
+                    "fixture": "https://example.com"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "expected": [
+          {
+            "callsTool": "list-velja-rules"
+          },
+          {
+            "not": {
+              "callsTool": "create-velja-rule"
+            }
+          }
+        ]
+      }
+    ]
+  },
   "preferences": [],
   "dependencies": {
     "@raycast/api": "^1.40.0"
@@ -140,6 +242,7 @@
     "@types/react": "19.0.10",
     "eslint": "^8.51.0",
     "prettier": "^3.0.3",
+    "tsx": "^4.20.5",
     "typescript": "^5.2.2"
   },
   "scripts": {
@@ -147,6 +250,7 @@
     "dev": "ray develop",
     "fix-lint": "ray lint --fix",
     "lint": "ray lint",
-    "publish": "ray publish"
+    "publish": "ray publish",
+    "test": "tsx --test tests/**/*.test.ts"
   }
 }
