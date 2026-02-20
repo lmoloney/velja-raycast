@@ -17,6 +17,7 @@ test("registers read and write AI tools explicitly", () => {
   assert(toolNames.includes("list-velja-rules"));
   assert(toolNames.includes("find-velja-rules-by-domain"));
   assert(toolNames.includes("create-velja-rule"));
+  assert(toolNames.includes("get-preferred-browsers"));
 });
 
 test("instructions prevent write tool use for read-only queries", () => {
