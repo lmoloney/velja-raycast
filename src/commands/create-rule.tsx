@@ -60,7 +60,9 @@ function parseJsonObject(text: string): Record<string, unknown> {
 
   const objectMatch = primaryCandidate.match(/\{[\s\S]*\}/);
   if (!objectMatch) {
-    throw new Error("AI response did not contain a JSON object.");
+    throw new Error(
+      `AI response did not contain a JSON object. Received: ${primaryCandidate.slice(0, 100)}...`
+    );
   }
 
   const parsed = JSON.parse(objectMatch[0]) as unknown;
