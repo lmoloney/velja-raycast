@@ -1,4 +1,4 @@
-import { Action, Tool } from "@raycast/api";
+import { Tool } from "@raycast/api";
 import { getSelectableBrowserIdentifiers } from "../lib/browsers";
 import { CreateRuleInput, createRule } from "../lib/rules";
 import { VeljaMatcherKind } from "../lib/types";
@@ -84,7 +84,6 @@ export const confirmation: Tool.Confirmation<Input> = async (input) => {
   const sourceApps = normalizeSourceApps(input.sourceApps);
 
   return {
-    style: Action.Style.Regular,
     message: `Create Velja rule "${input.title.trim()}"?`,
     info: [
       { name: "Browser", value: input.browser },
